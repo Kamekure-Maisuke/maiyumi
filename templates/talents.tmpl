@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タレント一覧</title>
+</head>
+<body>
+    <h1>タレント一覧</h1>
+
+    <p><a href="/talents/new">新規タレント登録</a> | <a href="/">ホーム</a> | <a href="/logout">ログアウト</a></p>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>名前</th>
+                <th>所属</th>
+                <th>美しさ</th>
+                <th>可愛さ</th>
+                <th>才能</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Talents}}
+            <tr>
+                <td><a href="/talents/detail?id={{.ID}}">{{.Name}}</a></td>
+                <td>{{if .Affiliation.Valid}}{{.Affiliation.String}}{{else}}-{{end}}</td>
+                <td>{{.TotalBeauty}}</td>
+                <td>{{.TotalCuteness}}</td>
+                <td>{{.TotalTalent}}</td>
+                <td>
+                    <a href="/talents/edit?id={{.ID}}">編集</a>
+                    <form action="/talents/delete" method="POST" style="display:inline;">
+                        <input type="hidden" name="id" value="{{.ID}}">
+                        <button type="submit" onclick="return confirm('本当に削除しますか?')">削除</button>
+                    </form>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="6">タレントが登録されていません</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</body>
+</html>

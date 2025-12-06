@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タレント詳細</title>
+</head>
+<body>
+    <h1>タレント詳細</h1>
+
+    <p><a href="/talents">一覧に戻る</a> | <a href="/">ホーム</a> | <a href="/logout">ログアウト</a></p>
+
+    <h2>基本情報</h2>
+    <table border="1">
+        <tr>
+            <th>名前</th>
+            <td>{{.Talent.Name}}</td>
+        </tr>
+        <tr>
+            <th>所属</th>
+            <td>{{if .Talent.Affiliation.Valid}}{{.Talent.Affiliation.String}}{{else}}-{{end}}</td>
+        </tr>
+        <tr>
+            <th>美しさ (初期値)</th>
+            <td>{{.Talent.Beauty}}</td>
+        </tr>
+        <tr>
+            <th>美しさ (現在)</th>
+            <td>{{.Talent.TotalBeauty}}</td>
+        </tr>
+        <tr>
+            <th>可愛さ (初期値)</th>
+            <td>{{.Talent.Cuteness}}</td>
+        </tr>
+        <tr>
+            <th>可愛さ (現在)</th>
+            <td>{{.Talent.TotalCuteness}}</td>
+        </tr>
+        <tr>
+            <th>才能 (初期値)</th>
+            <td>{{.Talent.Talent}}</td>
+        </tr>
+        <tr>
+            <th>才能 (現在)</th>
+            <td>{{.Talent.TotalTalent}}</td>
+        </tr>
+    </table>
+
+    <p>
+        <a href="/talents/edit?id={{.Talent.ID}}">編集</a>
+        <form action="/talents/delete" method="POST" style="display:inline;">
+            <input type="hidden" name="id" value="{{.Talent.ID}}">
+            <button type="submit" onclick="return confirm('本当に削除しますか?')">削除</button>
+        </form>
+    </p>
+
+    <h2>加点・減点を追加</h2>
+    <form action="/talents/adjust" method="POST">
+        <input type="hidden" name="talent_id" value="{{.Talent.ID}}">
+
+        <label>
+            種類:
+            <select name="adjustment_type" required>
+                <option value="beauty">美しさ</option>
+                <option value="cuteness">可愛さ</option>
+                <option value="talent">才能</option>
+            </select>
+        </label>
+        <br>
+
+        <label>
+            点数 (-10 ~ 10):
+            <input type="number" name="points" min="-10" max="10" required>
+        </label>
+        <br>
+
+        <label>
+            理由:
+            <input type="text" name="reason" required>
+        </label>
+        <br>
+
+        <button type="submit">追加</button>
+    </form>
+
+    <h2>調整履歴</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>種類</th>
+                <th>点数</th>
+                <th>理由</th>
+                <th>日時</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Adjustments}}
+            <tr>
+                <td>
+                    {{if eq .AdjustmentType "beauty"}}美しさ
+                    {{else if eq .AdjustmentType "cuteness"}}可愛さ
+                    {{else if eq .AdjustmentType "talent"}}才能
+                    {{end}}
+                </td>
+                <td>{{if gt .Points 0}}+{{end}}{{.Points}}</td>
+                <td>{{.Reason}}</td>
+                <td>{{.CreatedAt}}</td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="4">調整履歴がありません</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</body>
+</html>

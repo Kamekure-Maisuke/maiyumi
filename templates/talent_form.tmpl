@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{if .IsEdit}}タレント編集{{else}}タレント新規登録{{end}}</title>
+</head>
+<body>
+    <h1>{{if .IsEdit}}タレント編集{{else}}タレント新規登録{{end}}</h1>
+
+    <p><a href="/talents">一覧に戻る</a> | <a href="/">ホーム</a> | <a href="/logout">ログアウト</a></p>
+
+    <form action="{{if .IsEdit}}/talents/edit?id={{.Talent.ID}}{{else}}/talents/new{{end}}" method="POST">
+        <label>
+            名前 (必須):
+            <input type="text" name="name" value="{{if .IsEdit}}{{.Talent.Name}}{{end}}" required>
+        </label>
+        <br>
+
+        <label>
+            所属:
+            <input type="text" name="affiliation" value="{{if .IsEdit}}{{if .Talent.Affiliation.Valid}}{{.Talent.Affiliation.String}}{{end}}{{end}}">
+        </label>
+        <br>
+
+        <label>
+            美しさ (1 ~ 10, 必須):
+            <input type="number" name="beauty" min="1" max="10" value="{{if .IsEdit}}{{.Talent.Beauty}}{{else}}5{{end}}" required>
+        </label>
+        <br>
+
+        <label>
+            可愛さ (1 ~ 10, 必須):
+            <input type="number" name="cuteness" min="1" max="10" value="{{if .IsEdit}}{{.Talent.Cuteness}}{{else}}5{{end}}" required>
+        </label>
+        <br>
+
+        <label>
+            才能 (1 ~ 10, 必須):
+            <input type="number" name="talent" min="1" max="10" value="{{if .IsEdit}}{{.Talent.Talent}}{{else}}5{{end}}" required>
+        </label>
+        <br>
+
+        <button type="submit">{{if .IsEdit}}更新{{else}}登録{{end}}</button>
+    </form>
+</body>
+</html>
