@@ -2,8 +2,8 @@ package main
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
 	"encoding/hex"
 	"html/template"
 	"log"
@@ -13,7 +13,16 @@ import (
 
 	"github.com/Kamekure-Maisuke/maiyumi/model"
 	"github.com/Kamekure-Maisuke/maiyumi/repository"
+	"golang.org/x/crypto/argon2"
 	_ "modernc.org/sqlite"
+)
+
+const (
+	argon2Time    = 1
+	argon2Memory  = 64 * 1024
+	argon2Threads = 4
+	argon2KeyLen  = 32
+	argon2SaltLen = 16
 )
 
 type App struct {
@@ -62,9 +71,60 @@ func initDB() (*sql.DB, error) {
 	return db, err
 }
 
-func hashPassword(password string) string {
-	hash := sha256.Sum256([]byte(password))
-	return hex.EncodeToString(hash[:])
+func hashPassword(password string) (string, error) {
+	salt := make([]byte, argon2SaltLen)
+	if _, err := rand.Read(salt); err != nil {
+		return "", err
+	}
+
+	hash := argon2.IDKey([]byte(password), salt, argon2Time, argon2Memory, argon2Threads, argon2KeyLen)
+
+	encoded := base64.RawStdEncoding.EncodeToString(salt) + ":" + base64.RawStdEncoding.EncodeToString(hash)
+	return encoded, nil
+}
+
+func verifyPassword(password, encodedHash string) bool {
+	parts := make([]byte, len(encodedHash))
+	copy(parts, encodedHash)
+
+	var colonPos int
+	for i := 0; i < len(encodedHash); i++ {
+		if encodedHash[i] == ':' {
+			colonPos = i
+			break
+		}
+	}
+
+	if colonPos == 0 {
+		return false
+	}
+
+	saltEncoded := encodedHash[:colonPos]
+	hashEncoded := encodedHash[colonPos+1:]
+
+	salt, err := base64.RawStdEncoding.DecodeString(saltEncoded)
+	if err != nil {
+		return false
+	}
+
+	expectedHash, err := base64.RawStdEncoding.DecodeString(hashEncoded)
+	if err != nil {
+		return false
+	}
+
+	hash := argon2.IDKey([]byte(password), salt, argon2Time, argon2Memory, argon2Threads, argon2KeyLen)
+
+	if len(hash) != len(expectedHash) {
+		return false
+	}
+
+	for i := 0; i < len(hash); i++ {
+		if hash[i] != expectedHash[i] {
+			return false
+		}
+	}
+
+	return true
 }
 
 func generateSessionID() string {
@@ -120,7 +180,12 @@ func (app *App) handleRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		hashedPassword := hashPassword(password)
+		hashedPassword, err := hashPassword(password)
+		if err != nil {
+			http.Error(w, "パスワードのハッシュ化に失敗しました", http.StatusInternalServerError)
+			return
+		}
+
 		if err := app.userRepo.Create(username, hashedPassword); err != nil {
 			http.Error(w, "ユーザー登録に失敗しました", http.StatusInternalServerError)
 			return
@@ -146,8 +211,7 @@ func (app *App) handleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		hashedPassword := hashPassword(password)
-		if hashedPassword != user.Password {
+		if !verifyPassword(password, user.Password) {
 			http.Error(w, "ログインに失敗しました", http.StatusUnauthorized)
 			return
 		}
