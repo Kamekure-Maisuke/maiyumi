@@ -4,45 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>タレント一覧</title>
+    <link rel="stylesheet" href="/static/css/main.css" />
 </head>
 <body>
-    <h1>タレント一覧</h1>
+    <div class="container">
+        <h1>タレント一覧</h1>
 
-    <p><a href="/talents/new">新規タレント登録</a> | <a href="/">ホーム</a> | <a href="/logout">ログアウト</a></p>
+        <nav class="nav">
+            <a class="nav__item" href="/talents/new">新規タレント登録</a>
+            <span class="nav__separator">|</span>
+            <a class="nav__item" href="/">ホーム</a>
+            <span class="nav__separator">|</span>
+            <a class="nav__item" href="/logout">ログアウト</a>
+        </nav>
 
-    <table border="1">
-        <thead>
-            <tr>
-                <th>名前</th>
-                <th>所属</th>
-                <th>美しさ</th>
-                <th>可愛さ</th>
-                <th>才能</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .Talents}}
-            <tr>
-                <td><a href="/talents/detail?id={{.ID}}">{{.Name}}</a></td>
-                <td>{{if .Affiliation.Valid}}{{.Affiliation.String}}{{else}}-{{end}}</td>
-                <td>{{.TotalBeauty}}</td>
-                <td>{{.TotalCuteness}}</td>
-                <td>{{.TotalTalent}}</td>
-                <td>
-                    <a href="/talents/edit?id={{.ID}}">編集</a>
-                    <form action="/talents/delete" method="POST" style="display:inline;">
-                        <input type="hidden" name="id" value="{{.ID}}">
-                        <button type="submit" onclick="return confirm('本当に削除しますか?')">削除</button>
-                    </form>
-                </td>
-            </tr>
-            {{else}}
-            <tr>
-                <td colspan="6">タレントが登録されていません</td>
-            </tr>
-            {{end}}
-        </tbody>
-    </table>
+        <table class="table">
+            <thead class="table__header">
+                <tr class="table__row">
+                    <th class="table__header-cell">名前</th>
+                    <th class="table__header-cell">所属</th>
+                    <th class="table__header-cell">美しさ</th>
+                    <th class="table__header-cell">可愛さ</th>
+                    <th class="table__header-cell">才能</th>
+                    <th class="table__header-cell">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Talents}}
+                <tr class="table__row">
+                    <td class="table__cell"><a href="/talents/detail?id={{.ID}}">{{.Name}}</a></td>
+                    <td class="table__cell">{{if .Affiliation.Valid}}{{.Affiliation.String}}{{else}}-{{end}}</td>
+                    <td class="table__cell">{{.TotalBeauty}}</td>
+                    <td class="table__cell">{{.TotalCuteness}}</td>
+                    <td class="table__cell">{{.TotalTalent}}</td>
+                    <td class="table__cell">
+                        <div class="table__actions">
+                            <a class="btn btn--small btn--secondary" href="/talents/edit?id={{.ID}}">編集</a>
+                            <form action="/talents/delete" method="POST">
+                                <input type="hidden" name="id" value="{{.ID}}">
+                                <button class="btn btn--small btn--danger" type="submit" onclick="return confirm('本当に削除しますか?')">削除</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {{else}}
+                <tr class="table__row">
+                    <td class="table__cell table__cell--empty" colspan="6">タレントが登録されていません</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
 </body>
 </html>

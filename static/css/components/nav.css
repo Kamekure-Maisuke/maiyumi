@@ -1,0 +1,27 @@
+/* ========================================
+   Component: Navigation (BEM)
+   ======================================== */
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  margin-bottom: var(--space-lg);
+}
+
+.nav__item {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.nav__item:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.nav__separator {
+  color: var(--color-text-light);
+}

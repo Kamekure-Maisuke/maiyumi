@@ -4,20 +4,31 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>新規登録</title>
+        <link rel="stylesheet" href="/static/css/main.css" />
     </head>
     <body>
-        <h1>新規登録</h1>
-        <form method="POST" action="/register">
-            <div>
-                <label for="username">ユーザー名:</label>
-                <input type="text" id="username" name="username" required />
-            </div>
-            <div>
-                <label for="password">パスワード:</label>
-                <input type="password" id="password" name="password" required />
-            </div>
-            <button type="submit">登録</button>
-        </form>
-        <p><a href="/login">ログインはこちら</a></p>
+        <div class="container container--narrow">
+            <h1 class="u-text-center">新規登録</h1>
+
+            <form class="form" method="POST" action="/register">
+                <div class="form__group">
+                    <label class="form__label" for="username">ユーザー名</label>
+                    <input class="form__input" type="text" id="username" name="username" required />
+                </div>
+
+                <div class="form__group">
+                    <label class="form__label" for="password">パスワード</label>
+                    <input class="form__input" type="password" id="password" name="password" required />
+                </div>
+
+                <div class="form__actions">
+                    <button class="btn btn--primary" type="submit">登録</button>
+                </div>
+            </form>
+
+            <p class="u-text-center u-mt-lg">
+                <a href="/login">ログインはこちら</a>
+            </p>
+        </div>
     </body>
 </html>

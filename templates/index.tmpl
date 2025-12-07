@@ -3,10 +3,23 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Hello World</title>
+        <title>ホーム</title>
+        <link rel="stylesheet" href="/static/css/main.css" />
     </head>
     <body>
-        <h1>{{.Name}}さん、こんにちは。</h1>
-        <p><a href="/talents">タレント管理</a> | <a href="/logout">ログアウト</a></p>
+        <div class="container">
+            <div class="card">
+                <div class="card__header">
+                    <h1 class="card__title">{{.Name}}さん、こんにちは</h1>
+                </div>
+                <div class="card__body">
+                    <p>タレント管理システムへようこそ。</p>
+                </div>
+                <div class="card__footer">
+                    <a class="btn btn--primary" href="/talents">タレント管理</a>
+                    <a class="btn btn--secondary" href="/logout">ログアウト</a>
+                </div>
+            </div>
+        </div>
     </body>
 </html>

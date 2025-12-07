@@ -535,6 +535,8 @@ func main() {
 		)),
 	}
 
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	http.HandleFunc("/", app.handleIndex)
 	http.HandleFunc("/register", app.handleRegister)
 	http.HandleFunc("/login", app.handleLogin)

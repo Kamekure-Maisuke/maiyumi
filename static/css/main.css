@@ -1,0 +1,24 @@
+/* ========================================
+   Main CSS - ITCSS Architecture
+   ======================================== */
+
+/* Settings: Variables and config */
+@import url('settings/variables.css');
+
+/* Generic: Reset and normalize */
+@import url('generic/reset.css');
+
+/* Elements: Base HTML elements */
+@import url('elements/base.css');
+
+/* Components: UI components (BEM) */
+@import url('components/container.css');
+@import url('components/button.css');
+@import url('components/card.css');
+@import url('components/form.css');
+@import url('components/nav.css');
+@import url('components/table.css');
+@import url('components/stat.css');
+
+/* Utilities: Helper classes */
+@import url('utilities/helpers.css');
