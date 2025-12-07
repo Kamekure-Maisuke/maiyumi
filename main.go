@@ -118,7 +118,7 @@ func verifyPassword(password, encodedHash string) bool {
 		return false
 	}
 
-	for i := 0; i < len(hash); i++ {
+	for i := range len(hash) {
 		if hash[i] != expectedHash[i] {
 			return false
 		}
