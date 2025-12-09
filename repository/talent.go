@@ -12,6 +12,7 @@ type TalentRepository interface {
 	Delete(id, userID int) error
 	FindByID(id, userID int) (*model.Talent, error)
 	FindByUserID(userID int) ([]model.Talent, error)
+	SearchByUserID(userID int, query string) ([]model.Talent, error)
 	Exists(id, userID int) (bool, error)
 }
 
@@ -80,6 +81,35 @@ func (r *talentRepository) FindByUserID(userID int) ([]model.Talent, error) {
 		FROM talents
 		WHERE user_id = ?
 		ORDER BY created_at DESC`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var talents []model.Talent
+	for rows.Next() {
+		var t model.Talent
+		if err := rows.Scan(&t.ID, &t.UserID, &t.Name, &t.Affiliation, &t.Beauty, &t.Cuteness, &t.Talent, &t.CreatedAt); err != nil {
+			continue
+		}
+
+		t.TotalBeauty, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Beauty, "beauty")
+		t.TotalCuteness, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Cuteness, "cuteness")
+		t.TotalTalent, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Talent, "talent")
+
+		talents = append(talents, t)
+	}
+
+	return talents, nil
+}
+
+func (r *talentRepository) SearchByUserID(userID int, query string) ([]model.Talent, error) {
+	searchQuery := "%" + query + "%"
+	rows, err := r.db.Query(`
+		SELECT id, user_id, name, affiliation, beauty, cuteness, talent, created_at
+		FROM talents
+		WHERE user_id = ? AND (name LIKE ? OR affiliation LIKE ?)
+		ORDER BY created_at DESC`, userID, searchQuery, searchQuery)
 	if err != nil {
 		return nil, err
 	}

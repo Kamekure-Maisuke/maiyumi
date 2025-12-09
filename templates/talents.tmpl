@@ -18,6 +18,19 @@
             <a class="nav__item" href="/logout">ログアウト</a>
         </nav>
 
+        <form method="GET" action="/talents" class="form">
+            <div class="form__group">
+                <input type="search" name="q" class="form__input" placeholder="タレント名または所属で検索" value="{{.SearchQuery}}" />
+                {{if .SearchQuery}}
+                <a href="/talents" class="btn btn--secondary">クリア</a>
+                {{end}}
+            </div>
+        </form>
+
+        {{if .SearchQuery}}
+        <p>検索キーワード「{{.SearchQuery}}」の検索結果: {{len .Talents}}件</p>
+        {{end}}
+
         <table class="table">
             <thead class="table__header">
                 <tr class="table__row">

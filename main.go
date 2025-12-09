@@ -260,14 +260,23 @@ func (app *App) handleTalents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	talents, err := app.talentRepo.FindByUserID(userID)
+	searchQuery := r.URL.Query().Get("q")
+	var talents []model.Talent
+
+	if searchQuery != "" {
+		talents, err = app.talentRepo.SearchByUserID(userID, searchQuery)
+	} else {
+		talents, err = app.talentRepo.FindByUserID(userID)
+	}
+
 	if err != nil {
 		http.Error(w, "タレント一覧の取得に失敗しました", http.StatusInternalServerError)
 		return
 	}
 
 	app.tmpl.ExecuteTemplate(w, "talents.tmpl", map[string]any{
-		"Talents": talents,
+		"Talents":     talents,
+		"SearchQuery": searchQuery,
 	})
 }
 

@@ -16,8 +16,45 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## プロジェクト構成
 
 ```
-go.mod
-main.go: エンドポイント
-templates: viewファイル
-|--index.tmpl
+|--data.db
+|--dump
+|  |--dump_20251206_114340.sql
+|--go.mod
+|--go.sum
+|--main.go
+|--model
+|  |--model.go
+|--repository
+|  |--adjustment.go
+|  |--session.go
+|  |--talent.go
+|  |--user.go
+|--scripts
+|  |--dump_db.go
+|--static
+|  |--css
+|  |  |--components
+|  |  |  |--button.css
+|  |  |  |--card.css
+|  |  |  |--container.css
+|  |  |  |--form.css
+|  |  |  |--nav.css
+|  |  |  |--stat.css
+|  |  |  |--table.css
+|  |  |--elements
+|  |  |  |--base.css
+|  |  |--generic
+|  |  |  |--reset.css
+|  |  |--main.css
+|  |  |--settings
+|  |  |  |--variables.css
+|  |  |--utilities
+|  |  |  |--helpers.css
+|--templates
+|  |--index.tmpl
+|  |--login.tmpl
+|  |--register.tmpl
+|  |--talent_detail.tmpl
+|  |--talent_form.tmpl
+|  |--talents.tmpl
 ```
