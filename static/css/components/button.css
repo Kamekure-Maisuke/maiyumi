@@ -60,3 +60,31 @@
   padding: var(--space-xs) var(--space-md);
   font-size: var(--font-size-sm);
 }
+
+.btn-favorite {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  color: var(--color-border);
+  transition: all var(--transition-fast);
+}
+
+.btn-favorite:hover {
+  transform: scale(1.2);
+  color: var(--color-primary);
+}
+
+.btn-favorite--active {
+  color: #ffd700;
+}
+
+.btn-favorite--active:hover {
+  color: #ffed4e;
+}
+
+.favorite-form {
+  margin: 0;
+  display: inline;
+}

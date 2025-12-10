@@ -54,6 +54,7 @@ func initDB() (*sql.DB, error) {
 		beauty INTEGER NOT NULL CHECK(beauty >= 1 AND beauty <= 10),
 		cuteness INTEGER NOT NULL CHECK(cuteness >= 1 AND cuteness <= 10),
 		talent INTEGER NOT NULL CHECK(talent >= 1 AND talent <= 10),
+		is_favorite BOOLEAN DEFAULT 0,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		FOREIGN KEY (user_id) REFERENCES users(id)
 	);
@@ -68,7 +69,14 @@ func initDB() (*sql.DB, error) {
 	);`
 
 	_, err = db.Exec(createTableSQL)
-	return db, err
+	if err != nil {
+		return nil, err
+	}
+
+	// マイグレーション: is_favoriteカラムを追加（既存DBのため）
+	db.Exec("ALTER TABLE talents ADD COLUMN is_favorite BOOLEAN DEFAULT 0")
+
+	return db, nil
 }
 
 func hashPassword(password string) (string, error) {
@@ -261,9 +269,12 @@ func (app *App) handleTalents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	searchQuery := r.URL.Query().Get("q")
+	favoriteOnly := r.URL.Query().Get("favorite") == "true"
 	var talents []model.Talent
 
-	if searchQuery != "" {
+	if favoriteOnly {
+		talents, err = app.talentRepo.FindFavoritesByUserID(userID)
+	} else if searchQuery != "" {
 		talents, err = app.talentRepo.SearchByUserID(userID, searchQuery)
 	} else {
 		talents, err = app.talentRepo.FindByUserID(userID)
@@ -275,8 +286,9 @@ func (app *App) handleTalents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.tmpl.ExecuteTemplate(w, "talents.tmpl", map[string]any{
-		"Talents":     talents,
-		"SearchQuery": searchQuery,
+		"Talents":      talents,
+		"SearchQuery":  searchQuery,
+		"FavoriteOnly": favoriteOnly,
 	})
 }
 
@@ -519,6 +531,37 @@ func (app *App) handleTalentDetail(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (app *App) handleTalentToggleFavorite(w http.ResponseWriter, r *http.Request) {
+	if !app.requireAuth(w, r) {
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "無効なメソッドです", http.StatusMethodNotAllowed)
+		return
+	}
+
+	talentID, err := strconv.Atoi(r.FormValue("id"))
+	if err != nil {
+		http.Error(w, "無効なIDです", http.StatusBadRequest)
+		return
+	}
+
+	username := app.getUsername(r)
+	userID, err := app.userRepo.GetID(username)
+	if err != nil {
+		http.Error(w, "ユーザー情報の取得に失敗しました", http.StatusInternalServerError)
+		return
+	}
+
+	if err := app.talentRepo.ToggleFavorite(talentID, userID); err != nil {
+		http.Error(w, "お気に入りの切り替えに失敗しました", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/talents", http.StatusSeeOther)
+}
+
 func main() {
 	db, err := initDB()
 	if err != nil {
@@ -556,6 +599,7 @@ func main() {
 	http.HandleFunc("/talents/delete", app.handleTalentDelete)
 	http.HandleFunc("/talents/adjust", app.handleTalentAdjust)
 	http.HandleFunc("/talents/detail", app.handleTalentDetail)
+	http.HandleFunc("/talents/toggle-favorite", app.handleTalentToggleFavorite)
 
 	log.Println("Server started at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
