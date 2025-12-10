@@ -73,3 +73,18 @@
 .u-gap-lg {
   gap: var(--space-lg);
 }
+
+/* Filter Bar */
+.filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.favorite-filter {
+  display: flex;
+  align-items: center;
+}

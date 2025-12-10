@@ -17,6 +17,7 @@ type Talent struct {
 	Beauty        int
 	Cuteness      int
 	Talent        int
+	IsFavorite    bool
 	TotalBeauty   int
 	TotalCuteness int
 	TotalTalent   int

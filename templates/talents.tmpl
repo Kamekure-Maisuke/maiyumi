@@ -18,22 +18,35 @@
             <a class="nav__item" href="/logout">ログアウト</a>
         </nav>
 
-        <form method="GET" action="/talents" class="form">
-            <div class="form__group">
-                <input type="search" name="q" class="form__input" placeholder="タレント名または所属で検索" value="{{.SearchQuery}}" />
-                {{if .SearchQuery}}
-                <a href="/talents" class="btn btn--secondary">クリア</a>
+        <div class="filter-bar">
+            <form method="GET" action="/talents" class="form">
+                <div class="form__group">
+                    <input type="search" name="q" class="form__input" placeholder="タレント名または所属で検索" value="{{.SearchQuery}}" />
+                    {{if .SearchQuery}}
+                    <a href="/talents" class="btn btn--secondary">クリア</a>
+                    {{end}}
+                </div>
+            </form>
+
+            <div class="favorite-filter">
+                {{if .FavoriteOnly}}
+                <a href="/talents" class="btn btn--primary">すべて表示</a>
+                {{else}}
+                <a href="/talents?favorite=true" class="btn btn--secondary">お気に入りのみ</a>
                 {{end}}
             </div>
-        </form>
+        </div>
 
         {{if .SearchQuery}}
         <p>検索キーワード「{{.SearchQuery}}」の検索結果: {{len .Talents}}件</p>
+        {{else if .FavoriteOnly}}
+        <p>お気に入り: {{len .Talents}}件</p>
         {{end}}
 
         <table class="table">
             <thead class="table__header">
                 <tr class="table__row">
+                    <th class="table__header-cell"></th>
                     <th class="table__header-cell">名前</th>
                     <th class="table__header-cell">所属</th>
                     <th class="table__header-cell">美しさ</th>
@@ -45,6 +58,14 @@
             <tbody>
                 {{range .Talents}}
                 <tr class="table__row">
+                    <td class="table__cell">
+                        <form action="/talents/toggle-favorite" method="POST" class="favorite-form">
+                            <input type="hidden" name="id" value="{{.ID}}">
+                            <button type="submit" class="btn-favorite {{if .IsFavorite}}btn-favorite--active{{end}}" title="お気に入り">
+                                {{if .IsFavorite}}★{{else}}☆{{end}}
+                            </button>
+                        </form>
+                    </td>
                     <td class="table__cell"><a href="/talents/detail?id={{.ID}}">{{.Name}}</a></td>
                     <td class="table__cell">{{if .Affiliation.Valid}}{{.Affiliation.String}}{{else}}-{{end}}</td>
                     <td class="table__cell">{{.TotalBeauty}}</td>
@@ -62,7 +83,7 @@
                 </tr>
                 {{else}}
                 <tr class="table__row">
-                    <td class="table__cell table__cell--empty" colspan="6">タレントが登録されていません</td>
+                    <td class="table__cell table__cell--empty" colspan="7">タレントが登録されていません</td>
                 </tr>
                 {{end}}
             </tbody>
