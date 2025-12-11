@@ -16,6 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## プロジェクト構成
 
 ```
+|--.github
 |--data.db
 |--dump
 |  |--dump_20251206_114340.sql
