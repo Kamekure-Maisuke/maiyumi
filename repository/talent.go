@@ -89,17 +89,35 @@ func (r *talentRepository) FindByUserID(userID int) ([]model.Talent, error) {
 	defer rows.Close()
 
 	var talents []model.Talent
+	var talentIDs []int
 	for rows.Next() {
 		var t model.Talent
 		if err := rows.Scan(&t.ID, &t.UserID, &t.Name, &t.Affiliation, &t.Beauty, &t.Cuteness, &t.Talent, &t.IsFavorite, &t.CreatedAt); err != nil {
 			continue
 		}
-
-		t.TotalBeauty, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Beauty, "beauty")
-		t.TotalCuteness, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Cuteness, "cuteness")
-		t.TotalTalent, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Talent, "talent")
-
+		talentIDs = append(talentIDs, t.ID)
 		talents = append(talents, t)
+	}
+
+	if len(talents) == 0 {
+		return talents, nil
+	}
+
+	adjustments, err := r.adjRepo.CalculateTotalScores(talentIDs)
+	if err != nil {
+		return talents, nil
+	}
+
+	for i := range talents {
+		if adj, ok := adjustments[talents[i].ID]; ok {
+			talents[i].TotalBeauty = talents[i].Beauty + adj["beauty"]
+			talents[i].TotalCuteness = talents[i].Cuteness + adj["cuteness"]
+			talents[i].TotalTalent = talents[i].Talent + adj["talent"]
+		} else {
+			talents[i].TotalBeauty = talents[i].Beauty
+			talents[i].TotalCuteness = talents[i].Cuteness
+			talents[i].TotalTalent = talents[i].Talent
+		}
 	}
 
 	return talents, nil
@@ -118,17 +136,35 @@ func (r *talentRepository) SearchByUserID(userID int, query string) ([]model.Tal
 	defer rows.Close()
 
 	var talents []model.Talent
+	var talentIDs []int
 	for rows.Next() {
 		var t model.Talent
 		if err := rows.Scan(&t.ID, &t.UserID, &t.Name, &t.Affiliation, &t.Beauty, &t.Cuteness, &t.Talent, &t.IsFavorite, &t.CreatedAt); err != nil {
 			continue
 		}
-
-		t.TotalBeauty, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Beauty, "beauty")
-		t.TotalCuteness, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Cuteness, "cuteness")
-		t.TotalTalent, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Talent, "talent")
-
+		talentIDs = append(talentIDs, t.ID)
 		talents = append(talents, t)
+	}
+
+	if len(talents) == 0 {
+		return talents, nil
+	}
+
+	adjustments, err := r.adjRepo.CalculateTotalScores(talentIDs)
+	if err != nil {
+		return talents, nil
+	}
+
+	for i := range talents {
+		if adj, ok := adjustments[talents[i].ID]; ok {
+			talents[i].TotalBeauty = talents[i].Beauty + adj["beauty"]
+			talents[i].TotalCuteness = talents[i].Cuteness + adj["cuteness"]
+			talents[i].TotalTalent = talents[i].Talent + adj["talent"]
+		} else {
+			talents[i].TotalBeauty = talents[i].Beauty
+			talents[i].TotalCuteness = talents[i].Cuteness
+			talents[i].TotalTalent = talents[i].Talent
+		}
 	}
 
 	return talents, nil
@@ -146,17 +182,35 @@ func (r *talentRepository) FindFavoritesByUserID(userID int) ([]model.Talent, er
 	defer rows.Close()
 
 	var talents []model.Talent
+	var talentIDs []int
 	for rows.Next() {
 		var t model.Talent
 		if err := rows.Scan(&t.ID, &t.UserID, &t.Name, &t.Affiliation, &t.Beauty, &t.Cuteness, &t.Talent, &t.IsFavorite, &t.CreatedAt); err != nil {
 			continue
 		}
-
-		t.TotalBeauty, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Beauty, "beauty")
-		t.TotalCuteness, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Cuteness, "cuteness")
-		t.TotalTalent, _ = r.adjRepo.CalculateTotalScore(t.ID, t.Talent, "talent")
-
+		talentIDs = append(talentIDs, t.ID)
 		talents = append(talents, t)
+	}
+
+	if len(talents) == 0 {
+		return talents, nil
+	}
+
+	adjustments, err := r.adjRepo.CalculateTotalScores(talentIDs)
+	if err != nil {
+		return talents, nil
+	}
+
+	for i := range talents {
+		if adj, ok := adjustments[talents[i].ID]; ok {
+			talents[i].TotalBeauty = talents[i].Beauty + adj["beauty"]
+			talents[i].TotalCuteness = talents[i].Cuteness + adj["cuteness"]
+			talents[i].TotalTalent = talents[i].Talent + adj["talent"]
+		} else {
+			talents[i].TotalBeauty = talents[i].Beauty
+			talents[i].TotalCuteness = talents[i].Cuteness
+			talents[i].TotalTalent = talents[i].Talent
+		}
 	}
 
 	return talents, nil
