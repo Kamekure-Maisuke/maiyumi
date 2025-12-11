@@ -9,6 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 標準ライブラリを利用するには、`~/.local/share/mise/installs/go/1.25.5` を確認してから実装。
   - バージョン互換性の違いをなくすため。
 - HTMLはW3Cに沿った標準的な記法で記述。
+- CSSはstatic/cssディレクトリ。BEM + ITCSS設計。記述はシンプルかつ効率的にすること。
+- repository層のテストは極力書く。ケースは最低限。
 
 ## 技術スタック
 - Go 1.25.5
