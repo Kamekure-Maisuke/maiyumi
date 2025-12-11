@@ -76,6 +76,22 @@ func initDB() (*sql.DB, error) {
 	// マイグレーション: is_favoriteカラムを追加（既存DBのため）
 	db.Exec("ALTER TABLE talents ADD COLUMN is_favorite BOOLEAN DEFAULT 0")
 
+	// インデックスの作成
+	indexSQL := `
+	CREATE INDEX IF NOT EXISTS idx_talents_user_id ON talents(user_id);
+	CREATE INDEX IF NOT EXISTS idx_talents_user_id_favorite ON talents(user_id, is_favorite);
+	CREATE INDEX IF NOT EXISTS idx_adjustments_talent_id_type ON adjustments(talent_id, adjustment_type);
+	`
+	_, err = db.Exec(indexSQL)
+	if err != nil {
+		return nil, err
+	}
+
+	// コネクションプーリング設定
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
 	return db, nil
 }
 
