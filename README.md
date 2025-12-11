@@ -14,6 +14,12 @@ go run scripts/dump_db.go
 sqlite3 data.db < dump/xxxx.sql
 ```
 
+## テスト
+
+```
+go test ./...
+```
+
 ## 本番
 
 ```shell
