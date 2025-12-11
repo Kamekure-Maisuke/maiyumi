@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マイページ</title>
+    <link rel="stylesheet" href="/static/css/main.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>マイページ</h1>
+
+        <nav class="nav">
+            <a class="nav__item" href="/">ホーム</a>
+            <span class="nav__separator">|</span>
+            <a class="nav__item" href="/talents">タレント管理</a>
+            <span class="nav__separator">|</span>
+            <a class="nav__item" href="/logout">ログアウト</a>
+        </nav>
+
+        <div class="card">
+            <div class="card__header">
+                <h2 class="card__title">ユーザー情報</h2>
+            </div>
+            <div class="card__body">
+                <div class="stat">
+                    <div class="stat__item">
+                        <span class="stat__label">ユーザー名:</span>
+                        <span class="stat__value">{{.User.Username}}</span>
+                    </div>
+                    <div class="stat__item">
+                        <span class="stat__label">登録日:</span>
+                        <span class="stat__value">{{.User.CreatedAt}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card__footer">
+                <a class="btn btn--primary" href="/mypage/username">ユーザー名変更</a>
+                <a class="btn btn--secondary" href="/mypage/password">パスワード変更</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

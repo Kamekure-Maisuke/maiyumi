@@ -562,6 +562,138 @@ func (app *App) handleTalentToggleFavorite(w http.ResponseWriter, r *http.Reques
 	http.Redirect(w, r, "/talents", http.StatusSeeOther)
 }
 
+func (app *App) handleMyPage(w http.ResponseWriter, r *http.Request) {
+	if !app.requireAuth(w, r) {
+		return
+	}
+
+	username := app.getUsername(r)
+	userID, err := app.userRepo.GetID(username)
+	if err != nil {
+		http.Error(w, "ユーザー情報の取得に失敗しました", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := app.userRepo.FindByID(userID)
+	if err != nil {
+		http.Error(w, "ユーザー情報の取得に失敗しました", http.StatusInternalServerError)
+		return
+	}
+
+	app.tmpl.ExecuteTemplate(w, "mypage.tmpl", map[string]any{
+		"User": user,
+	})
+}
+
+func (app *App) handleUpdateUsername(w http.ResponseWriter, r *http.Request) {
+	if !app.requireAuth(w, r) {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		username := app.getUsername(r)
+		app.tmpl.ExecuteTemplate(w, "username_form.tmpl", map[string]any{
+			"Username": username,
+		})
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		username := app.getUsername(r)
+		userID, err := app.userRepo.GetID(username)
+		if err != nil {
+			http.Error(w, "ユーザー情報の取得に失敗しました", http.StatusInternalServerError)
+			return
+		}
+
+		newUsername := r.FormValue("username")
+		if newUsername == "" {
+			http.Error(w, "ユーザー名を入力してください", http.StatusBadRequest)
+			return
+		}
+
+		if err := app.userRepo.UpdateUsername(userID, newUsername); err != nil {
+			http.Error(w, "ユーザー名の更新に失敗しました", http.StatusInternalServerError)
+			return
+		}
+
+		sessionID := generateSessionID()
+		cookie, _ := r.Cookie("session_id")
+		if cookie != nil {
+			app.sessionRepo.Delete(cookie.Value)
+		}
+		app.sessionRepo.Set(sessionID, newUsername)
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_id",
+			Value:    sessionID,
+			Path:     "/",
+			Expires:  time.Now().Add(24 * time.Hour),
+			HttpOnly: true,
+		})
+
+		http.Redirect(w, r, "/mypage", http.StatusSeeOther)
+	}
+}
+
+func (app *App) handleUpdatePassword(w http.ResponseWriter, r *http.Request) {
+	if !app.requireAuth(w, r) {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		app.tmpl.ExecuteTemplate(w, "password_form.tmpl", nil)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		username := app.getUsername(r)
+		userID, err := app.userRepo.GetID(username)
+		if err != nil {
+			http.Error(w, "ユーザー情報の取得に失敗しました", http.StatusInternalServerError)
+			return
+		}
+
+		currentPassword := r.FormValue("current_password")
+		newPassword := r.FormValue("new_password")
+		confirmPassword := r.FormValue("confirm_password")
+
+		if currentPassword == "" || newPassword == "" || confirmPassword == "" {
+			http.Error(w, "すべてのフィールドを入力してください", http.StatusBadRequest)
+			return
+		}
+
+		if newPassword != confirmPassword {
+			http.Error(w, "新しいパスワードが一致しません", http.StatusBadRequest)
+			return
+		}
+
+		user, err := app.userRepo.FindByID(userID)
+		if err != nil {
+			http.Error(w, "ユーザー情報の取得に失敗しました", http.StatusInternalServerError)
+			return
+		}
+
+		if !verifyPassword(currentPassword, user.Password) {
+			http.Error(w, "現在のパスワードが正しくありません", http.StatusUnauthorized)
+			return
+		}
+
+		hashedPassword, err := hashPassword(newPassword)
+		if err != nil {
+			http.Error(w, "パスワードのハッシュ化に失敗しました", http.StatusInternalServerError)
+			return
+		}
+
+		if err := app.userRepo.UpdatePassword(userID, hashedPassword); err != nil {
+			http.Error(w, "パスワードの更新に失敗しました", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/mypage", http.StatusSeeOther)
+	}
+}
+
 func main() {
 	db, err := initDB()
 	if err != nil {
@@ -584,6 +716,9 @@ func main() {
 			"templates/talents.tmpl",
 			"templates/talent_detail.tmpl",
 			"templates/talent_form.tmpl",
+			"templates/mypage.tmpl",
+			"templates/username_form.tmpl",
+			"templates/password_form.tmpl",
 		)),
 	}
 
@@ -600,6 +735,9 @@ func main() {
 	http.HandleFunc("/talents/adjust", app.handleTalentAdjust)
 	http.HandleFunc("/talents/detail", app.handleTalentDetail)
 	http.HandleFunc("/talents/toggle-favorite", app.handleTalentToggleFavorite)
+	http.HandleFunc("/mypage", app.handleMyPage)
+	http.HandleFunc("/mypage/username", app.handleUpdateUsername)
+	http.HandleFunc("/mypage/password", app.handleUpdatePassword)
 
 	log.Println("Server started at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
