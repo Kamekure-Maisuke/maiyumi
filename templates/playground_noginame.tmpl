@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>NogiNameジェネレータ</title>
+        <link rel="stylesheet" href="/static/css/main.css" />
+    </head>
+    <body>
+        <div class="container">
+            <div class="card">
+                <div class="card__header">
+                    <h1 class="card__title">NogiNameジェネレータ</h1>
+                </div>
+                <form method="POST" action="/playground/noginame">
+                    <div class="card__body">
+                        {{if .ErrorMessage}}
+                        <div style="margin-bottom: 20px; padding: 10px; background-color: #ffe6e6; border: 1px solid #ff4d4d; border-radius: 4px; color: #cc0000;">
+                            {{.ErrorMessage}}
+                        </div>
+                        {{end}}
+                        <div>
+                            <label class="form__label" for="noginame">変換名（半角英数字のみ）</label>
+                            <input type="text" id="noginame" name="noginame" class="form__input" required pattern="[ -~]*" title="半角英数字のみ入力してください" />
+                        </div>
+                        {{if .NogiName}}
+                        <div style="margin-top: 20px;">
+                            <strong>変換結果:</strong>
+                            <pre style="color: #9b59b6; font-family: monospace; line-height: 1.2; margin-top: 10px; overflow-x: auto;">{{.NogiName}}</pre>
+                        </div>
+                        {{end}}
+                        <div style="margin-top: 20px; display: flex; gap: 10px;">
+                            <button type="submit" class="btn btn--primary">変換</button>
+                            {{if .NogiName}}
+                            <a href="/playground/noginame" class="btn btn--secondary">クリア</a>
+                            {{end}}
+                        </div>
+                    </div>
+                </form>
+                <div class="card__footer">
+                    <a class="btn btn--primary" href="/talents">タレント管理</a>
+                    <a class="btn btn--secondary" href="/mypage">マイページ</a>
+                    <a class="btn btn--secondary" href="/logout">ログアウト</a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -9,10 +9,13 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/Kamekure-Maisuke/maiyumi/model"
 	"github.com/Kamekure-Maisuke/maiyumi/repository"
+	"github.com/common-nighthawk/go-figure"
 	"golang.org/x/crypto/argon2"
 	_ "modernc.org/sqlite"
 )
@@ -30,6 +33,7 @@ type App struct {
 	talentRepo     repository.TalentRepository
 	adjustmentRepo repository.AdjustmentRepository
 	sessionRepo    repository.SessionRepository
+	resultStore    *sync.Map
 	tmpl           *template.Template
 }
 
@@ -155,6 +159,42 @@ func generateSessionID() string {
 	b := make([]byte, 32)
 	rand.Read(b)
 	return hex.EncodeToString(b)
+}
+
+func isASCII(s string) bool {
+	for _, c := range s {
+		if c > 127 {
+			return false
+		}
+	}
+	return true
+}
+
+func convertToNogiName(input string) (string, error) {
+	if !isASCII(input) {
+		return "", nil
+	}
+
+	fig := figure.NewFigure(input, "banner", true)
+	art := fig.String()
+
+	lines := strings.Split(art, "\n")
+	var result strings.Builder
+
+	for _, line := range lines {
+		var newLine strings.Builder
+		for _, char := range line {
+			if char != ' ' && char != '\n' {
+				newLine.WriteString("◢")
+			} else {
+				newLine.WriteString("  ")
+			}
+		}
+		result.WriteString(newLine.String())
+		result.WriteString("\n")
+	}
+
+	return result.String(), nil
 }
 
 func (app *App) getUsername(r *http.Request) string {
@@ -710,6 +750,72 @@ func (app *App) handleUpdatePassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *App) handlePlaygroundIndex(w http.ResponseWriter, r *http.Request) {
+	if !app.requireAuth(w, r) {
+		return
+	}
+
+	app.tmpl.ExecuteTemplate(w, "playground_index.tmpl", nil)
+}
+
+func (app *App) handlePlaygroundNogiName(w http.ResponseWriter, r *http.Request) {
+	if !app.requireAuth(w, r) {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		resultID := r.URL.Query().Get("id")
+		errorType := r.URL.Query().Get("error")
+
+		var result string
+		if resultID != "" {
+			if val, ok := app.resultStore.Load(resultID); ok {
+				result = val.(string)
+			}
+		}
+
+		var errorMessage string
+		if errorType == "ascii_only" {
+			errorMessage = "半角英数字のみ入力可能です"
+		}
+
+		data := struct {
+			NogiName     string
+			ErrorMessage string
+		}{
+			NogiName:     result,
+			ErrorMessage: errorMessage,
+		}
+		app.tmpl.ExecuteTemplate(w, "playground_noginame.tmpl", data)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		noginame := r.FormValue("noginame")
+
+		if noginame == "" {
+			http.Error(w, "入力値が不正です", http.StatusBadRequest)
+			return
+		}
+
+		if !isASCII(noginame) {
+			http.Redirect(w, r, "/playground/noginame?error=ascii_only", http.StatusSeeOther)
+			return
+		}
+
+		result, err := convertToNogiName(noginame)
+		if err != nil {
+			http.Error(w, "変換に失敗しました", http.StatusInternalServerError)
+			return
+		}
+
+		resultID := generateSessionID()
+		app.resultStore.Store(resultID, result)
+
+		http.Redirect(w, r, "/playground/noginame?id="+resultID, http.StatusSeeOther)
+	}
+}
+
 func main() {
 	db, err := initDB()
 	if err != nil {
@@ -725,6 +831,7 @@ func main() {
 		talentRepo:     talentRepo,
 		adjustmentRepo: adjustmentRepo,
 		sessionRepo:    repository.NewSessionRepository(),
+		resultStore:    &sync.Map{},
 		tmpl: template.Must(template.ParseFiles(
 			"templates/index.tmpl",
 			"templates/login.tmpl",
@@ -735,6 +842,8 @@ func main() {
 			"templates/mypage.tmpl",
 			"templates/username_form.tmpl",
 			"templates/password_form.tmpl",
+			"templates/playground_index.tmpl",
+			"templates/playground_noginame.tmpl",
 		)),
 	}
 
@@ -754,6 +863,8 @@ func main() {
 	http.HandleFunc("/mypage", app.handleMyPage)
 	http.HandleFunc("/mypage/username", app.handleUpdateUsername)
 	http.HandleFunc("/mypage/password", app.handleUpdatePassword)
+	http.HandleFunc("/playground", app.handlePlaygroundIndex)
+	http.HandleFunc("/playground/noginame", app.handlePlaygroundNogiName)
 
 	log.Println("Server started at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
